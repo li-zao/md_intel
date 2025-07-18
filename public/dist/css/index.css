@@ -1,0 +1,140 @@
+
+@font-face {
+    font-family: digital-7;
+    src: url('../../font/digital-7.mono.ttf');
+}
+h3 {
+    font-family: 'digital-7', serif;
+}
+.small-box {
+    border-radius: .25rem;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+    display: block;
+    margin-bottom: 0;
+    position: relative;
+}
+
+.small-box>.inner {
+    padding: 10px;
+    height: 80px;
+}
+
+.small-box h3 {
+    font-size: 3rem;
+    font-weight: 100;
+    margin: 0 0 10px;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.small-box p {
+    font-size: 1rem;
+}
+
+.small-box .icon {
+    color: rgba(0,0,0,.15);
+    z-index: 0;
+}
+
+.small-box .icon>i {
+    font-size: 60px;
+    position: absolute;
+    right: 22px;
+    top: 22px;
+    transition: -webkit-transform .3s linear;
+    transition: transform .3s linear;
+    transition: transform .3s linear,-webkit-transform .3s linear;
+}
+
+.small-box .icon>i.fa, .small-box .icon>i.fab, .small-box .icon>i.fad, .small-box .icon>i.fal, .small-box .icon>i.far, .small-box .icon>i.fas, .small-box .icon>i.ion {
+    font-size: 4rem;
+    top: 20px;
+}
+
+.small-box>.small-box-footer {
+    background-color: rgba(0,0,0,.1);
+    color: rgba(255,255,255,.8);
+    display: block;
+    padding: 5px 0;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    z-index: 10;
+}
+
+.small-box>.small-box-footer:hover {
+    background-color: rgba(0,0,0,.15);
+    color: #fff;
+}
+
+.bg-info, .bg-info>a {
+    color: #fff!important;
+}
+
+.bg-info {
+    background-color: #17a2b8!important;
+}
+
+.bg-success, .bg-success>a {
+    color: #fff!important;
+}
+
+.bg-success {
+    background-color: #28a745!important;
+}
+
+.bg-warning, .bg-warning>a {
+    color: #fff!important;
+}
+
+.bg-warning {
+    background-color: #f9bb00!important;
+}
+
+.bg-danger, .bg-danger>a {
+    color: #fff!important;
+}
+
+.bg-danger {
+    background-color: #dc3545!important
+}
+
+.bg-other-1, .bg-other-1>a {
+    color: #fff!important;
+}
+
+.bg-other-1 {
+    background-color: #431c5d!important
+}
+
+.bg-other-2, .bg-other-2>a {
+    color: #fff!important;
+}
+
+.bg-other-2 {
+    background-color: #7B68EE!important
+}
+
+.layui-col-space10 {
+    margin: -2.5px -5px -2.5px -5px;
+}
+
+#today-chart {
+    height: 400px;
+}
+.layui-card-body {
+    padding: 0px 15px;
+}
+.layui-card-header {
+    height: 25px;
+    line-height: 25px;
+}
+
+.fa-light:hover {
+    -webkit-transform: scale(1.1);
+    transform: scale(1.1)
+}
+.small-box:hover .fa-light{
+    -webkit-transform: scale(1.1);
+    transform: scale(1.1)
+}

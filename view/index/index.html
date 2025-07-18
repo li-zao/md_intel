@@ -1,0 +1,220 @@
+{extend  name="layout" /}
+
+{block name="content"}
+<link rel="stylesheet" href="/dist/css/index.min.css?{$v}">
+<script src="/dist/js/echarts.js?{$v}" type="text/javascript" charset="utf-8"></script>
+<div class="layui-row layui-col-space10">
+    <div class="layui-col-md3">
+        <a href="/intel/url?type=0" class="small-box bg-success">
+            <div class="inner" style="vertical-align: middle">
+                <h3 id="url_normal"><i class="fa-light fa-spinner-scale fa-spin"></i></h3>
+                <h2>正常URL</h2>
+            </div>
+            <div class="icon">
+                <i class="fa-light fa-octagon-check"></i>
+            </div>
+            <span class="small-box-footer">查看 <i class="fa-regular fa-circle-arrow-right"></i></span>
+        </a>
+    </div>
+    <div class="layui-col-md3">
+        <a href="/intel/url?type=1" class="small-box bg-warning">
+            <div class="inner">
+                <h3 id="url_malicious"><i class="fa-light fa-spinner-scale fa-spin"></i></h3>
+                <h2>恶意URL</h2>
+            </div>
+            <div class="icon">
+                <i class="fa-light fa-octagon-xmark"></i>
+            </div>
+            <span class="small-box-footer">查看 <i class="fa-regular fa-circle-arrow-right"></i></span>
+        </a>
+    </div>
+    <div class="layui-col-md3">
+        <a href="/intel/file?type=0" class="small-box bg-success">
+            <div class="inner">
+                <h3 id="file_normal"><i class="fa-light fa-spinner-scale fa-spin"></i></h3>
+                <h2>正常文件</h2>
+            </div>
+            <div class="icon">
+                <i class="fa-light fa-file-check"></i>
+            </div>
+            <span class="small-box-footer">查看 <i class="fa-regular fa-circle-arrow-right"></i></span>
+        </a>
+    </div>
+    <div class="layui-col-md3">
+        <a href="/intel/file?type=0" class="small-box bg-warning">
+            <div class="inner">
+                <h3 id="file_malicious"><i class="fa-light fa-spinner-scale fa-spin"></i></h3>
+                <h2>恶意文件</h2>
+            </div>
+            <div class="icon">
+                <i class="fa-light fa-file-xmark"></i>
+            </div>
+            <span class="small-box-footer">查看 <i class="fa-regular fa-circle-arrow-right"></i></span>
+        </a>
+    </div>
+</div>
+<div class="layui-row layui-col-space10">
+    <div class="layui-col-md12" id="today-chart">
+    </div>
+</div>
+<script>
+    var chartDom = document.getElementById('today-chart');
+    var myChart = echarts.init(chartDom);
+    var seriesData;
+    var option;
+    option = {
+        title: {
+            text: '每日统计',
+        },
+        toolbox: {
+            show: true,
+            feature: {
+                myRefresh: {
+                    show: true,
+                    title: '刷新',
+                    icon: 'path://M105.1 202.6c7.7-21.8 20.2-42.3 37.8-59.8c62.5-62.5 163.8-62.5 226.3 0L386.3 160H352c-17.7 0-32 14.3-32 32s14.3 32 32 32H463.5c0 0 0 0 0 0h.4c17.7 0 32-14.3 32-32V80c0-17.7-14.3-32-32-32s-32 14.3-32 32v35.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5zM39 289.3c-5 1.5-9.8 4.2-13.7 8.2c-4 4-6.7 8.8-8.1 14c-.3 1.2-.6 2.5-.8 3.8c-.3 1.7-.4 3.4-.4 5.1V432c0 17.7 14.3 32 32 32s32-14.3 32-32V396.9l17.6 17.5 0 0c87.5 87.4 229.3 87.4 316.7 0c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.5 62.5-163.8 62.5-226.3 0l-.1-.1L125.6 352H160c17.7 0 32-14.3 32-32s-14.3-32-32-32H48.4c-1.6 0-3.2 .1-4.8 .3s-3.1 .5-4.6 1z',
+                    onclick: function () {
+                        window.location.href = '/index?refresh=1'
+                    }
+                }
+            }
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow',
+                shadowStyle: {
+                    color: 'rgba(77,77,77,0.2)',
+                },
+            },
+            formatter: function (params, ticket, callback) {
+                let _date = '';
+                let _list = '';
+                let _total = 0;
+                let content = '<div class="layui-card">';
+                content += '<div class="layui-card-header">{date}</div>';
+                content += '<div class="layui-card-body">';
+                for (let i = 0; i < params.length; i++) {
+                    let param = params[i];
+                    if (!_date.length) {
+                        _date = param.axisValue;
+                    }
+                    _total += parseInt(param.value);
+                    _list += '<p>';
+                    _list += param.marker;
+                    _list += param.seriesName;
+                    _list += ' : ';
+                    _list += param.value;
+                    _list += '</p>';
+                }
+                content += '<p><span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#000;"></span>总数 : ' + _total.toString() + '</p>';
+                content += _list;
+                content += '</div>';
+                content += '</div>';
+                return content.replace('{date}', _date);
+            }
+        },
+        legend: {
+            top: ''
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            // data: xAxisData,
+            // boundaryGap: false,
+            // type: 'value',
+        },
+        yAxis: {
+            type: 'value',
+            // type: 'category',
+            // data: xAxisData,
+        },
+    };
+    myChart.showLoading();
+    window.onresize = function () {
+        myChart.resize();
+    }
+    myChart.on('legendselectchanged', function(params) {
+        seriesData = updateLastSeries(seriesData, params.selected, myChart)
+        myChart.setOption({series: seriesData});
+    });
+    layui.use(['count'], function () {
+        var count = layui.count;
+        $.ajax({
+            url: '/index/getStatistics',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                for (let key in data.data) {
+                    count.up(key, {
+                        time: 2000,
+                        num: data.data[key],
+                        bit: 0,
+                        regulator: 50
+                    })
+                }
+            },
+            error: function (data) {
+                console.log(data);
+            }
+        });
+        $.ajax({
+            url: '/index/getChartData',
+            type: 'GET',
+            dataType: 'json',
+            success: function (res) {
+                myChart.hideLoading();
+                option.xAxis.data = res.data.xAxis;
+                seriesData = res.data.series;
+                updateLastSeries(seriesData, null, myChart);
+                option.series = seriesData;
+                option && myChart.setOption(option);
+            },
+            error: function (data) {
+                console.log(data);
+            }
+        });
+    });
+    function updateLastSeries(seriesData, selected = null, myChart) {
+        let lastKey = seriesData.length - 1;
+        if (selected) {
+            let pos = 0;
+            for (let key in selected) {
+                if (selected[key]) {
+                    lastKey = pos;
+                }
+                pos += 1;
+            }
+        }
+        for (let i = 0; i < seriesData.length; i++) {
+            seriesData[i].label = {
+                show: false
+            };
+        }
+        let lastSeries = seriesData[lastKey];
+        lastSeries.label = {
+            show: true,
+            position: 'top',
+            formatter: (params) => {
+                let _selected = myChart.getOption().legend[0].selected;
+                let total = 0;
+                seriesData.forEach(serie => {
+                    let _val = parseInt(serie.data[params.dataIndex]);
+                    if (typeof _selected[serie.name] !== 'undefined' && !_selected[serie.name]) {
+                        return false;
+                    }
+                    total += _val;
+                })
+                return total;
+            }
+        };
+        seriesData[lastKey] = lastSeries;
+        return seriesData;
+    }
+</script>
+{/block}

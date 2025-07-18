@@ -1,0 +1,333 @@
+{extend  name="layout" /}
+
+{block name="breadcrumb"}
+<a><cite>{$breadcrumb}</cite></a>
+{/block}
+
+{block name="content"}
+    <style>
+        .layui-form-select dl {
+            max-height: 500px !important;
+        }
+        .dict_status_1 {
+            color: #5FB878;
+        }
+        .dict_status_0 {
+            color: #FF5722;
+        }
+    </style>
+    <div class="layui-col-md12 search-row">
+        <div class="layui-collapse">
+            <div class="layui-colla-item">
+                <h2 class="layui-colla-title"><i class="fa fa-search"></i> 检索</h2>
+                <div class="layui-colla-content" style="padding:0">
+                    <input type="hidden" name="order_field">
+                    <input type="hidden" name="order_type">
+                    <table class="layui-table layui-form layui-form-pane" style="margin:0">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <label class="layui-form-label">类型</label>
+                                    <div class="layui-input-block">
+                                        <select name="type" id="search-type" lay-search>
+                                            <option value=""></option>
+                                            {foreach $types as $type => $name}
+                                                <option value="{$type}">{$name}</option>
+                                            {/foreach}
+                                        </select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <label class="layui-form-label">值</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" placeholder="请输入搜索值" autocomplete="off" class="layui-input" name="value">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="resetBtn" style="float:right">重置</button>
+                                    <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="searchBtn" style="float:right;margin-right:10px">查询</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-col-md12">
+        <table class="layui-hide" id="data_table" lay-filter="data_table"></table>
+    </div>
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-sm" lay-event="edit">编辑</a>
+        <!-- <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a> -->
+    </script>
+
+    <!-- 头部工具栏 -->
+    <script type="text/html" id="toolbar">
+        <div class="layui-btn-container">
+            <button class="layui-btn layui-btn-sm" lay-event="create">
+                <i class="layui-icon layui-icon-add-circle"></i> 创建字典
+            </button>
+            <button class="layui-btn layui-btn-sm" lay-event="create_type">
+                <i class="layui-icon layui-icon-add-circle"></i> 创建类型
+            </button>
+        </div>
+    </script>
+{/block}
+{block name="js"}
+    <script>
+        var laydate = layui.laydate
+        var table = layui.table;
+        var form = layui.form;
+        let tableFlag = '_dict';
+        let colsHideDict = loadTableCols(tableFlag);
+        let colsWidthDict = loadTableCols(tableFlag, 'width');
+        let order = $('input[name=order_field]');
+        let orderType = $('input[name=order_type]');
+        // table 展示
+        var instance = table.render({
+            elem: '#data_table',
+            toolbar: '#toolbar',
+            url: '/dictionary/dicList/',
+            page: true,
+            parseData: tableParseData.error,
+            cols: [[
+                // {type:'checkbox'},
+                {field: 'id', title: '序号', width:(colsWidthDict.get('id') ?? D_COL_WID), hide: colsHideDict.get('id'), sort: true},
+                {field: 'type', title: '类型', width:(colsWidthDict.get('type') ?? D_COL_WID), hide: colsHideDict.get('type'), sort: true},
+                {field: 'type_str', title: '类型描述', width:(colsWidthDict.get('type_str') ?? D_COL_WID), hide: colsHideDict.get('type_str')},
+                {field: 'key', title: '键', width:(colsWidthDict.get('key') ?? D_COL_WID), hide: colsHideDict.get('key')},
+                {field: 'value', title: '值', width:(colsWidthDict.get('value') ?? D_COL_WID), hide: colsHideDict.get('value')},
+                {field: 'status_str', title: '状态', width:(colsWidthDict.get('status_str') ?? D_COL_WID), hide: colsHideDict.get('status_str'), templet: function(d){
+                    return '<span class="dict_status_'+d.status+'">'+ d.status_str +'</span>';
+                }},
+                {field: 'desc', title: '描述', width:(colsWidthDict.get('desc') ?? D_COL_WID), hide: colsHideDict.get('desc')},
+                {fixed: 'right', title:'操作', width:96, toolbar: '#bar'}
+            ]]
+        });
+
+        table.on('rowDouble(data_table)', function(obj){});
+        table.on('sort(data_table)', function(obj){
+            order.val(obj.field);
+            orderType.val(obj.type);
+            searchDictionary();
+        });
+
+        // 行工具栏事件
+        table.on('tool(data_table)', function(obj){
+            var data = obj.data;
+            if (!data.id) {
+                return false;
+            }
+            switch (obj.event) {
+                case 'edit':
+                    openEditDialog(data.id);
+                    break;
+                case 'del':
+                    deleteDialog(data);
+                    break;
+            }
+        });
+
+        // 头工具栏事件
+        table.on('toolbar(data_table)', function(obj){
+            // var mIdSting = mIds.toString()
+            switch(obj.event){
+                case 'create':
+                    openEditDialog('');
+                    break;
+                case 'create_type':
+                    openTypeDialog(0);
+                    break;
+            }
+        });
+        table.on('colToggled(data_table)', function(obj){
+            saveTableCols(obj, tableFlag);
+        });
+        table.on('colResized(data_table)', function(obj){
+            saveTableColWidth(obj, tableFlag);
+        });
+        $(function () {
+            $('#searchBtn').on('click' , function(){
+                searchDictionary();
+            })
+            $('#resetBtn').on('click', function(){
+                window.location.href = "/dictionary/index"
+            })
+        });
+        function searchDictionary() {
+            // 检索条件用
+            let type = $('select[name="type"]').val();
+            let value = $('input[name="value"]').val();
+            table.reloadData(instance.config.id, {
+                url: '/dictionary/dicList/',
+                where: {
+                    type: type,
+                    value: value,
+                    order: order.val(),
+                    order_type: orderType.val(),
+                },
+                page: {
+                    curr: 1
+                }
+            })
+        }
+        /**
+         * 删除
+         * @param data
+         * @returns {boolean}
+         */
+        function deleteDialog(data) {
+            if (!data.id) {
+                return false;
+            }
+            delConfirm(data.name).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: "",
+                        data: {id: data.id},
+                        success: function (result) {
+                            if (result) {
+                                table.reloadData(instance.config.id);
+                                tipSuccess('删除成功');
+                            } else {
+                                tipError('删除失败');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        /**
+         * 添加 | 编辑
+         * @param id
+         */
+        function openEditDialog(id) {
+            let title = "创建字典"
+            if (id) {
+                title = "编辑字典"
+            }
+
+            // let _offsetTop = Math.floor($(document.body).height() * 1 / 10);
+            var dialogIndex = layer.open({
+                type: 2,
+                area: ['40%', '60%'],
+                // offset: [_offsetTop, 0],
+                title: title,
+                //skin:'to-fix-select',
+                shadeClose: true,
+                btn: ['保存', '关闭'],
+                yes: function(index, layero) {
+                    let submitBtn = layero.find('.layui-layer-btn0');
+                    submitBtn.addClass(BTN_HIDE);
+                    submitBtn.attr('disabled','disabled');
+                    setTimeout(function() {
+                        submitBtn.removeClass(BTN_HIDE)
+                        submitBtn.removeAttr('disabled')
+                    }, 3000);
+                    // 保存
+                    let inputForm = $("#layui-layer-iframe" + dialogIndex).contents().find("#pkForm");
+                    let type = inputForm.find('select[name=type]').val();
+                    let key = inputForm.find('input[name=key]').val();
+                    let value = inputForm.find('input[name=value]').val();
+                    if (!type) {
+                        tipError('类型不能为空');
+                        return false;
+                    }
+                    if (!key) {
+                        tipError('键不能为空');
+                        return false;
+                    }
+                    if (!value) {
+                        tipError('值不能为空');
+                        return false;
+                    }
+                    $.ajax({
+                        type: "POST",
+                        dataType: "json",
+                        url:'/dictionary/dicUpdate',
+                        data: inputForm.serialize(),
+                        success: function (result) {
+                            if (result.code) {
+                                tipError(result.msg);
+                                return false;
+                            }
+                            tipSuccess('操作成功');
+                            layer.close(dialogIndex);
+                            table.reloadData(instance.config.id);
+                        },
+                        error: function(data) {
+                            tipError('请求失败');
+                        }
+                    });
+                },
+                end: function (index, layero) {},
+                success: md_key_press_event.success,
+                content: '/dialog/dictionary/id/' + id
+            });
+        }
+        // 字典类型
+        function openTypeDialog(id) {
+            let title = "创建类型"
+            if (id) {
+                title = "编辑类型"
+            }
+            // let _offsetTop = Math.floor($(document.body).height() * 3 / 10);
+            var dialogIndex = layer.open({
+                type: 2,
+                area: ['30%', '37%'],
+                // offset: [_offsetTop, 0],
+                title: title,
+                //skin:'to-fix-select',
+                shadeClose: true,
+                btn: ['保存', '关闭'],
+                yes: function(index, layero) {
+                    let submitBtn = layero.find('.layui-layer-btn0');
+                    submitBtn.addClass(BTN_HIDE);
+                    submitBtn.attr('disabled','disabled');
+                    setTimeout(function() {
+                        submitBtn.removeClass(BTN_HIDE)
+                        submitBtn.removeAttr('disabled')
+                    }, 3000);
+                    // 保存
+                    let inputForm = $("#layui-layer-iframe" + dialogIndex).contents().find("#pkForm");
+                    let type = inputForm.find('input[name=type]').val();
+                    let name = inputForm.find('input[name=name]').val();
+                    if (!type) {
+                        tipError('类型不能为空');
+                        return false;
+                    }
+                    if (!name) {
+                        tipError('名称不能为空');
+                        return false;
+                    }
+                    $.ajax({
+                        type: "POST",
+                        dataType: "json",
+                        url:'/dictionary/updateType',
+                        data: inputForm.serialize(),
+                        success: function (result) {
+                            if (result.code) {
+                                tipError(result.msg);
+                                return false;
+                            }
+                            tipSuccess('操作成功');
+                            layer.close(dialogIndex);
+                            table.reloadData(instance.config.id);
+                        },
+                        error: function(data) {
+                            tipError('请求失败');
+                        }
+                    });
+                },
+                end: function (index, layero) {},
+                success: md_key_press_event.success,
+                content: '/dialog/dictionaryType/id/' + id
+            });
+        }
+    </script>
+{/block}

@@ -1,0 +1,102 @@
+{__NOLAYOUT__}
+{include file="public/dialog" /}
+<div class="layui-row">
+    <div class="layui-col-md12 layui-padding-2">
+        <table class="layui-hide data_table" lay-filter="data_table"></table>
+    </div>
+</div>
+
+<script>
+    layui.use(function () {
+        var table = layui.table;
+        var form = layui.form;
+        var tableFlag = 'md_intel_url_test_rows';
+        let colsHideDict = loadTableCols(tableFlag);
+        let colsWidthDict = loadTableCols(tableFlag, 'width');
+        // table 展示
+        var instance = table.render({
+            elem: '.data_table',
+            height: 'full',
+            toolbar: '#toolbar',
+            url: '/urlTest/rows/',
+            page: {groups: 10},
+            limits: [10, 20, 50, 100, 300, 1000],
+            where: {t_id: '{$id}'},
+            cols: [[ //表头
+                {type: 'checkbox'},
+                {field: 'id', width: (colsWidthDict.get('id') ?? '5%'), title: '序号', hide: colsHideDict.get('id')},
+                {
+                    field: 'url',
+                    width: (colsWidthDict.get('url') ?? '15%'),
+                    title: 'URL',
+                    hide: colsHideDict.get('url')
+                },
+                {
+                    field: 'score',
+                    width: (colsWidthDict.get('score') ?? '4%'),
+                    title: 'Score',
+                    hide: colsHideDict.get('score')
+                },
+                {
+                    field: 'res',
+                    width: (colsWidthDict.get('res') ?? '35%'),
+                    title: 'Res',
+                    hide: colsHideDict.get('res')
+                },
+                {
+                    field: 'created_at',
+                    width: (colsWidthDict.get('created_at') ?? '10%'),
+                    title: '上传时间',
+                    hide: colsHideDict.get('created_at')
+                },
+                {
+                    field: 'tas_id',
+                    width: (colsWidthDict.get('tas_id') ?? '5%'),
+                    title: '沙箱ID',
+                    hide: colsHideDict.get('tas_id')
+                },
+                {fixed: 'right', title: '操作', toolbar: '#bar', width: '326'}
+            ]]
+        });
+        // 行工具栏事件
+        table.on('tool(data_table)', function (obj) {
+            var data = obj.data;
+            var layer = layui.layer;
+            var layedit = layui.layedit;
+            if (data.id != undefined) {
+                var id = data.id;
+                if (obj.event === 'info') {
+                    openDetail(id, obj)
+                }
+            }
+        });
+
+        table.on('rowDouble(data_table)', function (obj) {
+            openDetail(obj.data.id, obj)
+        });
+        // 头工具栏事件
+        table.on('toolbar(data_table)', function (obj) {
+        });
+        table.on('colToggled(data_table)', function (obj) {
+            saveTableCols(obj, tableFlag);
+        });
+        table.on('colResized(data_table)', function (obj) {
+            saveTableColWidth(obj, tableFlag);
+        });
+
+        function openDetail(id, obj = {}, option = {}) {
+            dialogIndex = layer.open({
+                title: false,
+                type: 2,
+                tipsMore: true,
+                anim: option.anim || false,
+                isOutAnim: option.isOutAnim || false,
+                area: ['50%', '100%'],
+                btn: [
+                    '<i class="fa-light fa-times"></i> 关闭',
+                ],
+                content: '/dialog/urlTestRow/id/' + id
+            });
+        }
+    });
+</script>

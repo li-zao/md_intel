@@ -1,0 +1,23 @@
+{__NOLAYOUT__}
+{include file="public/dialog" /}
+<div class="layui-row">
+    <div class="layui-col-md12 layui-padding-2">
+        <fieldset class="layui-elem-field">
+            <legend>详情</legend>
+            <div class="layui-field-box">
+                <div class="layui-row">
+                    <div class="layui-col-md12">
+                        <pre id="json-renderer" class="json-container"></pre>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<script>
+    {if !empty($record)}
+    let detail = JSON.parse({$record|json_encode|raw});
+    $('#json-renderer').jsonViewer(detail);
+    {/if}
+</script>

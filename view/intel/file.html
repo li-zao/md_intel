@@ -1,0 +1,471 @@
+{extend  name="layout" /}
+
+{block name="breadcrumb"}
+<a><cite>{$breadcrumb}</cite></a>
+{/block}
+
+{block name="content"}
+<style>
+    .search-item {
+        margin-bottom: 0;
+    }
+    .search-table {
+        margin: 0;
+    }
+</style>
+<div class="layui-row layui-margin-2">
+    <div class="layui-col-md12">
+        <div class="layui-collapse">
+            <div class="layui-colla-item">
+                <h2 class="layui-colla-title"><i class="fa-light fa-magnifying-glass"></i> 检索</h2>
+                <div class="layui-colla-content" style="padding:0">
+                    <form class="layui-form layui-form-pane" action="" id="searchForm">
+                        <table class="layui-table search-table">
+                            <colgroup>
+                                <col style="width:25%">
+                                <col style="width:25%">
+                                <col style="width:25%">
+                                <col style="width:25%">
+                            </colgroup>
+                            <tbody>
+                            <tr>
+                                <td>
+                                    <div class="layui-form-item search-item">
+                                        <label class="layui-form-label">名称</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="name" autocomplete="off"
+                                                   class="layui-input">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="layui-form-item search-item">
+                                        <label class="layui-form-label">Hash</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="hash" autocomplete="off"
+                                                   class="layui-input">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="layui-form-item search-item">
+                                        <label class="layui-form-label">来源</label>
+                                        <div class="layui-input-block" id="source-select">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="layui-form-item search-item">
+                                        <label class="layui-form-label">类型</label>
+                                        <div class="layui-input-block" id="category-select">
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <div class="layui-form-item search-item">
+                                        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" id="resetBtn"
+                                                style="float:right"><i class="fa-light fa-magnifying-glass-arrows-rotate"></i> 重置
+                                        </button>
+                                        <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" id="searchBtn"
+                                                style="float:right;margin-right:10px"> <i class="fa-light fa-magnifying-glass"></i> 查询
+                                        </button>
+                                        <input type="hidden" name="type" value="{$type}">
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="layui-row layui-margin-2">
+    <div class="layui-col-md12">
+        <table class="layui-hide" id="data_table" lay-filter="data_table"></table>
+    </div>
+</div>
+
+<!-- 行工具栏 -->
+<script type="text/html" id="bar">
+    <div class="layui-btn-group">
+        <a class="layui-btn layui-btn-sm" lay-event="info"><i class="fa-light fa-lg fa-circle-info"></i> 详情</a>
+        <a class="layui-btn layui-btn-sm" lay-event="desc"><i class="fa-light fa-lg fa-comment-dots"></i> 评论</a>
+        <a class="layui-btn layui-btn-sm" lay-event="preview"><i class="fa-light fa-lg fa-expand"></i> 预览</a>
+        <a class="layui-btn layui-btn-danger layui-btn-sm" lay-event="del"><i class="fa-light fa-lg fa-trash-can"></i>
+            删除</a>
+    </div>
+</script>
+
+<!-- 头部工具栏 -->
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="addItem">
+            <i class="fa-light fa-lg fa-plus-circle"></i> 添加
+        </button>
+        <button class="layui-btn layui-btn-danger layui-btn-sm" lay-event="bulkDelete">
+            <i class="fa-light fa-lg fa-trash-can"></i> 删除
+        </button>
+        <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-event="export">
+            <i class="fa-light fa-lg fa-circle-down"></i> 导出
+        </button>
+    </div>
+</script>
+{/block}
+
+{block name="js"}
+<script>
+    var laydate = layui.laydate
+    var table = layui.table;
+    var form = layui.form
+    var type = '{$type}'
+    let source = renderXmSelect('#source-select', JSON.parse('{$source|json_encode|raw}'), 'source', true);
+    let category = renderXmSelect('#category-select', JSON.parse('{$category|json_encode|raw}'), 'category', true);
+    $(function () {
+        $('#searchBtn').click(function () {
+            table.reloadData(instance.config.id, {
+                url: '/intel/fileList/', //数据接口
+                where: objectifyForm($('#searchForm').serializeArray()),
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            })
+        })
+        $('#resetBtn').click(function () {
+            window.location.href = "/intel/file"
+        })
+    })
+    var tableFlag = 'md_intel_file';
+    let colsHideDict = loadTableCols(tableFlag);
+    let colsWidthDict = loadTableCols(tableFlag, 'width');
+    // table 展示
+    var instance = table.render({
+        elem: '#data_table',
+        height: 'full',
+        toolbar: '#toolbar', //开启头部工具栏，并为其绑定左侧模板
+        url: '/intel/fileList/', //数据接口
+        page: {groups: 10}, //开启分页
+        where: {
+            type: type
+        },
+        cols: [[ //表头
+            {type: 'checkbox'},
+            {field: 'id', width: (colsWidthDict.get('id') ?? '5%'), title: '序号', hide: colsHideDict.get('id')},
+            {
+                field: 'created_at',
+                width: (colsWidthDict.get('created_at') ?? '10%'),
+                title: '上传时间',
+                hide: colsHideDict.get('created_at')
+            },
+            {
+                field: 'name',
+                width: (colsWidthDict.get('name') ?? '35%'),
+                title: '名称',
+                hide: colsHideDict.get('name')
+            },
+            {
+                field: 'hash',
+                width: (colsWidthDict.get('hash') ?? '19%'),
+                title: 'Hash',
+                hide: colsHideDict.get('hash')
+            },
+            {
+                field: 'source_str',
+                width: (colsWidthDict.get('source_str') ?? '6%'),
+                title: '来源',
+                hide: colsHideDict.get('source_str')
+            },
+            {
+                field: 'category_str',
+                width: (colsWidthDict.get('category_str') ?? '6%'),
+                title: '类型',
+                hide: colsHideDict.get('category_str')
+            },
+            {fixed: 'right', title: '操作', toolbar: '#bar', width: '326'}
+        ]]
+    });
+
+    // 行工具栏事件
+    table.on('tool(data_table)', function (obj) {
+        var data = obj.data;
+        var layer = layui.layer;
+        var layedit = layui.layedit;
+        if (data.id != undefined) {
+            var id = data.id;
+            if (obj.event === 'info') {
+                openDetail(id, obj)
+            } else if (obj.event === 'desc') {
+                openDesc(id);
+            } else if (obj.event === 'download') {
+                // window.location.href = "/queue/downeml?id=" + data.mId + "&p=" + data.uploadDir
+            } else if (obj.event === 'preview') {
+                previewItem(obj);
+            } else if (obj.event === 'del') {
+                delConfirm(data.name).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type: "POST",
+                            url: "/intel/fileDel",
+                            data: {id: id},
+                            success: function (result) {
+                                if (result.code) {
+                                    tipError('删除失败，原因：' + result);
+                                    return false;
+                                }
+                                obj.del();
+                                table.reloadData(instance.config.id);
+                                tipSuccess('删除成功');
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    });
+    table.on('rowDouble(data_table)', function (obj) {
+        openDetail(obj.data.id, obj)
+    });
+    // 头工具栏事件
+    table.on('toolbar(data_table)', function (obj) {
+        var checkStatus = table.checkStatus(obj.config.id);
+        var data = checkStatus.data;
+        if (data.length === 0) {
+            if (obj.event === 'bulkDelete') {
+                tipError('请选择要操作的数据')
+                return false;
+            }
+        }
+        var ids = [];
+        $.each(data, function (a, b) {
+            ids.push(b.id)
+        });
+
+        var idsString = ids.toString()
+        switch (obj.event) {
+            case 'export':
+                if (data.length === 0) {
+                    tipError('不可导出全部文件，请限定范围');
+                    return false;
+                } else {
+                    exportData(ids);
+                }
+                break;
+            case 'addItem':
+                editItem(0);
+                break;
+            case 'bulkDelete':
+                delConfirm(data.length + '条数据').then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type: "POST",
+                            url: "/intel/fileDel",
+                            data: {ids: idsString},
+                            success: function (result) {
+                                if (result.code) {
+                                    tipError('删除失败 ' + result.msg);
+                                    return false;
+                                }
+                                table.reloadData(instance.config.id);
+                                tipSuccess('删除成功');
+                            }
+                        });
+                    }
+                });
+                break;
+        }
+    });
+    table.on('colToggled(data_table)', function (obj) {
+        saveTableCols(obj, tableFlag);
+    });
+    table.on('colResized(data_table)', function (obj) {
+        saveTableColWidth(obj, tableFlag);
+    });
+
+    function editItem(id) {
+        let title = "编辑";
+        if (id == 0) {
+            title = '新增';
+        }
+        layer.open({
+            type: 2,
+            title: title,
+            area: ['80%', '90%'],
+            content: "/dialog/editFile?id=" + id + "&type=" + type,
+            btn: ['关闭'],
+            btn1: function (index, layero) {
+                layer.close(index);
+                table.reloadData(instance.config.id);
+            }
+        });
+    }
+    function openDesc(id) {
+        $.ajax({
+            type: "GET",
+            data: {id: id},
+            url: "/dialog/getFileDesc",
+            success: function (result) {
+                layer.open({
+                    type: 1,
+                    title: '请输入评论',
+                    content: result,
+                    area: ['30%', '40%'],
+                    btn: ['确定'],
+                    skin: 'layui-layer-dialog',
+                    yes: function (index, layero) {
+                        let msg = $('#tempMsg').val();
+                        if (!msg.length) {
+                            tipError('请输入评论', {timer: 1500});
+                            return false;
+                        }
+                        $.ajax({
+                            type: "POST",
+                            data: {id: id, msg: msg},
+                            url: "/intel/fileDesc",
+                            success: function (result) {
+                                if (result.code) {
+                                    tipError('评论失败' + result.msg);
+                                    return false;
+                                }
+                                tipSuccess('评论成功');
+                                layer.close(index)
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+    function previewItem(obj) {
+        let id = obj.data.id;
+        layer.open({
+            type: 2,
+            title: false,
+            area: ['80%', '90%'],
+            shadeClose: true,
+            closeBtn: true,
+            content: "/dialog/filePreview?id=" + id,
+            success: md_key_press_event.success,
+        });
+    }
+    function openDetail(id, obj = {}, option = {}) {
+        var dialogIndex = layer.open({
+            title: false,
+            type: 2,
+            tipsMore: true,
+            closeBtn: false,
+            anim: option.anim || false,
+            isOutAnim: option.isOutAnim || false,
+            area: ['80%', '90%'],
+            btn: [
+                '<i class="fa-light fa-floppy-disk"></i> 保存评论',
+                '<i class="fa-light fa-expand"></i> 预览',
+                '<i class="fa-light fa-backward"></i> 上一条',
+                '下一条 <i class="fa-light fa-forward"></i>',
+                '<i class="fa-light fa-download"></i> 下载',
+                '<i class="fa-light fa-trash-can"></i> 删除',
+                '<i class="fa-light fa-times"></i> 关闭'
+            ],
+            btn1: function (index, layero) {
+                // 保存评论
+                let inputForm = $("#layui-layer-iframe" + dialogIndex).contents().find("#detail-form");
+                let desc = inputForm.find('textarea[name=desc]').val();
+                $.ajax({
+                    type: "POST",
+                    data: {id: id, msg: desc},
+                    url: "/intel/urlDesc",
+                    success: function (result) {
+                        if (result.code) {
+                            tipError('评论失败' + result.msg);
+                            return false;
+                        }
+                        tipSuccess('评论成功');
+                    }
+                });
+            },
+            btn2: function (index, layero) {
+                // 预览
+                previewItem(obj);
+                return false;
+            },
+            btn3: function (index, layero) {
+                // 上一封
+                let dataSet = layui.table.cache["data_table"]
+                for (let t = 0; t < dataSet.length; t++) {
+                    if (dataSet[t].id == id) {
+                        if (t == 0) {
+                            tipInfo('当前已经是第一条数据', {timer: 800})
+                            break;
+                        } else {
+                            t--;
+                            layer.close(dialogIndex);
+                            openDetail(dataSet[t].id, {data: dataSet[t]});
+                            break;
+                        }
+                    }
+                }
+                return false
+            },
+            btn4: function (index, layero) {
+                // 下一封
+                let dataSet = layui.table.cache["data_table"]
+                for (t = 0; t < dataSet.length; t++) {
+                    if (dataSet[t].id == id) {
+                        if (t == dataSet.length - 1) {
+                            tipInfo('当前已经是最后一条数据', {timer: 800});
+                            break;
+                        } else {
+                            t++;
+                            layer.close(dialogIndex);
+                            openDetail(dataSet[t].id, {data: dataSet[t]});
+                            break;
+                        }
+                    }
+                }
+                return false
+            },
+            btn5: function (index, layero) {
+                // 下载
+                exportData([id]);
+                return false;
+            },
+            btn6: function (index, layero) {
+                // 删除
+                delConfirm(obj.data.name || id).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type: "POST",
+                            url: "/intel/fileDel",
+                            data: {id: id},
+                            success: function (result) {
+                                if (result.code) {
+                                    tipError('删除失败 ' + result.msg);
+                                    return false;
+                                }
+                                layer.close(index);
+                                table.reloadData(instance.config.id);
+                                tipSuccess('删除成功');
+                            }
+                        });
+                    }
+                });
+                return false;
+            },
+            end: function (index, layero) {
+                table.reloadData(instance.config.id);
+            },
+            content: '/intel/fileDetail/id/' + id
+        });
+    }
+    function exportData(ids = []) {
+        if (!ids.length) {
+            window.open('/intel/fileExport?' + array2UrlParams(objectifyForm($('#searchForm').serializeArray())));
+        } else {
+            window.open('/intel/fileExport?ids=' + ids.join(','));
+        }
+    }
+</script>
+{/block}

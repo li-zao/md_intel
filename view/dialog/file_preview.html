@@ -1,0 +1,55 @@
+{__NOLAYOUT__}
+{include file="public/dialog" /}
+<link rel="stylesheet" href="/dist/css/viewer.min.css?{$v}"/>
+<link rel="stylesheet" href="/dist/css/hex0r.min.css?{$v}"/>
+<style>
+    #id-image-preview, .layui-row, .layui-col-md12 {
+        min-height: 100%;
+    }
+</style>
+<div class="layui-row {$showImageClass}">
+    <div class="layui-col-md12 layui-padding-2">
+        <img id="id-image-preview" class="layui-hide" src="/dialog/showFile?id={$id}" alt="Picture">
+    </div>
+</div>
+
+<div class="layui-row {$showTextClass}">
+    <div class="layui-col-md12 layui-padding-2">
+        <pre class="layui-code code-demo" lay-options="{}">{$content}</pre>
+    </div>
+</div>
+
+<div class="layui-row {$showHexClass}">
+    <div class="layui-col-md12 layui-padding-2">
+        <div class="hex0rwindow" data-row-width="16" data-word-size="1" data-row-break="8"
+             data-trim="true" data-base64="true" data-caption=""
+             data-highlights=""
+             data-show-line-nums="true" title="">
+            {$content}
+        </div>
+    </div>
+</div>
+<script src="/dist/js/viewer.min.js?v={$v}" type="text/javascript" charset="utf-8"></script>
+<script src="/dist/js/hex0r.min.js?v={$v}" type="text/javascript" charset="utf-8"></script>
+<script>
+    $('body').on('keydown', function (event) {
+        if (event.keyCode == 27) {
+            if (parent.layer) {
+                parent.layer.closeAll();
+            }
+        }
+    });
+    layui.use(function () {
+        var form = layui.form;
+        var upload = layui.upload;
+        var element = layui.element;
+        var $ = layui.$;
+        layui.code({
+            elem: '.code-demo'
+        });
+        const viewer = new Viewer(document.getElementById('id-image-preview'), {
+            inline: true,
+            button: false,
+        });
+    });
+</script>

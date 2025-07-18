@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title> {$Think.config.app.app_name} </title>
+    <link rel="stylesheet" href="/layui/css/layui.css?{$v}">
+    <link rel="stylesheet" href="/dist/css/layout.min.css?{$v}">
+    <link rel="stylesheet" href="/dist/css/all.min.css?{$v}">
+    <link rel="stylesheet" href="/dist/css/sweetalert2.min.css?{$v}"/>
+    <!-- 优先于common.js加载，否则tipMsg方法中Swal未定义 -->
+    <script src="/dist/js/sweetalert2.all.min.js?{$v}" type="text/javascript" charset="utf-8"></script>
+</head>
+<script src="/layui/layui.js?{$v}" type="text/javascript" charset="utf-8"></script>
+<script src="/dist/js/jquery.min.js?{$v}" type="text/javascript" charset="utf-8"></script>
+<script src="/dist/js/common.js?{$v}" type="text/javascript" charset="utf-8"></script>
+<script src="/dist/js/xm-select.js?v={$v}" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+    layui.config({
+        base: "/layui/module/"
+    }).extend({
+        count: "count",
+    });
+</script>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">{$Think.config.app.app_name}</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left layui-hide">
+            <li class="layui-nav-item"><a href="javascript:void(0)" id='uploadEml'>上传</a></li>
+            <li class="layui-nav-item">
+                <a href="javascript:;">其它系统</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="#" target="_blank">#</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item"><a href="javascript:void(0)" id='scanConfig'>API地址配置</a></li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:void(0);">
+                    <i class="fa-solid fa-user"></i>  {$Request.session.name}
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:void(0);" onclick="clearLocal()">Clear Local</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item"><a href="javascript:void(0)" onclick="dologout()"><i class="fa-light fa-arrow-right-from-bracket"></i> 退出</a></li>
+        </ul>
+    </div>
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                <li class="layui-nav-item" id="index"><a href="/index">首页</a></li>
+                <li class="layui-nav-item" id="intel">
+                    <a class="" href="javascript:void(0);">情报库</a>
+                    <dl class="layui-nav-child">
+                        <dd><a id="intel_url_type_0" href="/intel/url?type=0"><i class="fa-light fa-octagon-check"></i> 正常URL库</a></dd>
+                        <dd><a id="intel_url_type_1" href="/intel/url?type=1"><i class="fa-light fa-octagon-xmark"></i> 恶意URL库</a></dd>
+                        <dd><a id="intel_file_type_0" href="/intel/file?type=0"><i class="fa-light fa-file-check"></i> 正常文件库</a></dd>
+                        <dd><a id="intel_file_type_1" href="/intel/file?type=1"><i class="fa-light fa-file-xmark"></i> 恶意文件库</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item" id="urltest"><a href="/urlTest/index">URL验证列表</a></li>
+                <li class="layui-nav-item" id="dictionary"><a href="/dictionary/index">字典管理</a></li>
+                <li class="layui-nav-item" id="user"><a href="/user">账户管理</a></li>
+                <li class="layui-nav-item" id="system">
+                    <a class="" href="javascript:void(0);">系统</a>
+                    <dl class="layui-nav-child">
+                        <dd><a id="system_jobs" href="/system/jobs"><i class="fa-light fa-list"></i> 队列</a></dd>
+                    </dl>
+                </li>
+            </ul>
+            <div class="nav-footer">
+                <p>北京朗阁信息技术有限公司</p>
+                <p>©2010&nbsp;-&nbsp;{:date('Y')}</p>
+                <p>LongGer Inc. All Rights Reserved.</p>
+            </div>
+        </div>
+    </div>
+    <div class="layui-body layui-padding-2">
+        <div class="layui-progress" lay-filter="page-progress" id="page-progress">
+            <div class="layui-progress-bar" lay-percent="30%"></div>
+        </div>
+        <div class="layui-row layui-margin-2">
+            <div class="layui-col-md12">
+                <span class="layui-breadcrumb">
+                    <a href="/"><i class="fa-light fa-house"></i> 首页</a>
+                    {block name="breadcrumb"}{/block}
+                </span>
+            </div>
+        </div>
+        <!-- 内容主体区域 -->
+        {block name="content"}{/block}
+    </div>
+    <!-- 底部固定区域 -->
+    <div class="layui-footer">
+        北京朗阁信息技术有限公司&nbsp;&nbsp;©2010&nbsp;-&nbsp;{:date('Y')}&nbsp;&nbsp;LongGer Inc. All Rights Reserved.
+    </div>
+</div>
+<script>
+    $(function () {
+        $('body').on('keydown', function (event) {
+            if (event.keyCode == 27) {
+                layer.closeAll();
+            }
+        });
+        const iconAnimation = {
+            // "fa-light fa-octagon-check": "fa-beat-fade",
+            // "fa-light fa-octagon-xmark": "fa-beat-fade",
+            // "fa-light fa-file-check": "fa-shake",
+            // "fa-light fa-file-xmark": "fa-bounce",
+            // "fa-light fa-gear-complex": "fa-spin",
+            // "fa-light fa-binoculars": "fa-beat",
+            // "fa-light fa-bullhorn": "fa-beat",
+            // "fa-light fa-user-secret": "fa-flip",
+            // "fa-light fa-virus-covid": "fa-spin",
+            // "fa-light fa-ban": "fa-beat",
+            // "fa-light fa-thumbs-up": "fa-bounce",
+            // "fa-light fa-circle-exclamation": "fa-beat",
+        };
+        $('a.small-box').on("mouseenter", function (e) {
+            let icon = $(this).find('i.fa-light');
+            let animation = iconAnimation[icon.attr('class')];
+            icon.addClass(animation);
+        }).on("mouseleave", function (e) {
+            let icon = $(this).find('i.fa-light');
+            let iconClass = icon.attr('class');
+            iconClass = iconClass.split(' ');
+            iconClass = iconClass[0] + ' ' + iconClass[1];
+            let animation = iconAnimation[iconClass];
+            icon.removeClass(animation);
+        });
+        // 一级菜单选中
+        $("#{$li}").addClass('layui-nav-itemed');
+        // 二级菜单选中
+        $("#{$menu}").addClass('layui-this');
+    })
+
+    function clearLocal() {
+        opConfirm('确认清空本地缓存？', '所有列表字段显示记忆和自定义宽度都会丢失').then((result) => {
+            if (result.isConfirmed) {
+                localStorage.clear();
+                tipInfo('清除成功');
+            }
+        });
+    }
+    function dologout() {
+        opConfirm('确认退出？').then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "GET",
+                    url: "/index/dologout/",
+                    success: function (result) {
+                        window.location.reload();
+                    }
+                });
+            }
+        });
+    }
+</script>
+<!-- JavaScript代码区域 -->
+{block name="js"}
+{/block}
+</body>
+<script>
+    layui.use(function () {
+        let element = layui.element;
+        element.render('progress', 'page-progress');
+        $('#page-progress').hide();
+    });
+</script>
+</html>

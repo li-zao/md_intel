@@ -1,0 +1,90 @@
+{__NOLAYOUT__}
+{include file="public/dialog" /}
+<div class="layui-container">
+    <div class="layui-row">
+        <div class="layui-col-md12 layui-padding-2">
+            <form id="pkForm" lay-filter="pkForm" class="layui-form layui-form-pane" action="">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">类型</label>
+                    <div class="layui-input-block">
+                        <select name="type" lay-search lay-filter="select-type">
+                            <option value=""></option>
+                            {foreach $types as $key => $type}
+                            <option value="{$key}">{$type}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">键</label>
+                    <div class="layui-input-block">
+                        <input type="text" id="key" name="key" autocomplete="off" placeholder="" class="layui-input"
+                               lay-verify="required">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">值</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="value" autocomplete="off" class="layui-input" lay-verify="required">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">状态</label>
+                    <div class="layui-input-block with-border">
+                        <input type="checkbox" name="status" lay-skin="switch" value="1" lay-text="启用|禁用"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">描述</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="desc" autocomplete="off" class="layui-input" lay-verify="required">
+                    </div>
+                </div>
+                <input type="hidden" name="id">
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+var form = layui.form;
+// form数据初始化
+{if !empty($info)}
+    form.val("pkForm", {
+        id: '{$info["id"] ?? 0}',
+        type: '{$info["type"] ?? ""}',
+        key: '{$info["key"] ?? ""}',
+        value: '{$info["value"] ?? ""}',
+        desc: '{$info["desc"] ?? ""}',
+        status: '{$info["status"] ? true : false}',
+    })
+{else}
+    form.val("pkForm", {
+        status: true,
+    })
+{/if}
+$(function(){
+    // 渲染form
+    form.render();
+    form.on('select(select-type)', function(data){
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            async: false,
+            url:'/dictionary/getNextKey',
+            data: {type:data.value},
+            success: function (result) {
+                if (result.code) {
+                    tipError('请求错误');
+                    return false;
+                }
+                $('#key').val(result.data.key);
+            },
+            error: function(data) {
+                tipError('请求失败')
+            }
+        });
+    });
+})
+</script>

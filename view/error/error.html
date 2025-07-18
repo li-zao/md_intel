@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title> {$Think.config.app.app_name} </title>
+    <link rel="stylesheet" href="/layui/css/layui.css?{$v}">
+    <link rel="stylesheet" href="/dist/css/layout.min.css?{$v}">
+    <link rel="stylesheet" href="/dist/css/all.min.css?{$v}">
+    <link rel="stylesheet" href="/dist/css/sweetalert2.min.css?{$v}"/>
+    <!-- 优先于common.js加载，否则tipMsg方法中Swal未定义 -->
+    <script src="/dist/js/sweetalert2.all.min.js?{$v}" type="text/javascript" charset="utf-8"></script>
+</head>
+<style>
+    .layui-row {
+        margin: auto;
+        width: 50%;
+    }
+
+    .content-r h1, p, button {
+        margin: 10px;
+    }
+</style>
+<script src="/layui/layui.js?{$v}" type="text/javascript" charset="utf-8"></script>
+<script src="/dist/js/jquery.min.js?{$v}" type="text/javascript" charset="utf-8"></script>
+<script src="/dist/js/common.js?{$v}" type="text/javascript" charset="utf-8"></script>
+<body>
+<div class="layui-row">
+    <div class="layui-col-md6">
+        <img src="/dist/images/500.svg" alt="" style="float: right">
+    </div>
+    <div class="layui-col-md6 layui-padding-3">
+        <div class="content-r">
+            <h1>错误</h1>
+            <p>{$error}</p>
+            <button class="layui-btn" onclick="function closeWin() {
+                window.close();
+            }
+            closeWin()">关闭
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

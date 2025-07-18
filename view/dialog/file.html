@@ -1,0 +1,186 @@
+{__NOLAYOUT__}
+{include file="public/dialog" /}
+<style>
+    .upload-div button {
+        float: right;
+        margin: 5px;
+    }
+</style>
+<div class="layui-row">
+    <div class="layui-col-md12 layui-padding-2">
+        <form class="layui-form form-container" lay-filter="item-edit-form" id="item-edit-form">
+            <div class="layui-form-item" id="source">
+                <div class="layui-block">
+                    <label class="layui-form-label">来源</label>
+                    <div class="layui-input-block" id="source-div">
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item" id="category">
+                <div class="layui-block">
+                    <label class="layui-form-label">类型</label>
+                    <div class="layui-input-block" id="category-div">
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item upload-div">
+                <fieldset class="layui-elem-field">
+                    <legend>上传文件</legend>
+                    <button type="button" class="layui-btn layui-btn-normal" id="btn-select-files">选择多文件</button>
+                    <div class="layui-upload-list">
+                        <table class="layui-table">
+                            <colgroup>
+                                <col style="min-width: 100px;">
+                                <col width="150">
+                                <col width="260">
+                                <col width="150">
+                                <col width="150">
+                            </colgroup>
+                            <thead>
+                            <th>文件名</th>
+                            <th>大小</th>
+                            <th>上传进度</th>
+                            <th>信息</th>
+                            <th>操作</th>
+                            </thead>
+                            <tbody id="files-list"></tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="layui-btn" id="btn-start-upload"><i class="fa-light fa-upload"></i> 开始上传</button>
+                </fieldset>
+            </div>
+            {foreach $params as $key => $val}
+            <input type="hidden" name="{$key}" id="file-{$key}" value="{$val}">
+            {/foreach}
+            <input type="hidden" name="id" id="file-id" value="0">
+        </form>
+    </div>
+</div>
+
+<script>
+    let source = renderXmSelect('#source-div', JSON.parse('{$source|json_encode|raw}'), 'source', true);
+    let category = renderXmSelect('#category-div', JSON.parse('{$category|json_encode|raw}'), 'category', true);
+    layui.use(function () {
+        var form = layui.form;
+        var upload = layui.upload;
+        var element = layui.element;
+        var $ = layui.$;
+        form.val('item-edit-form', {
+            "id": "{$record['id']}",
+            "url": "{$record['url'] ?? ''}",
+        });
+        var getFormVal = function (field) {
+            let data = form.val('item-edit-form');
+            for (let key in data) {
+                if (key == field) {
+                    return data[key];
+                }
+            }
+            return '';
+        };
+        // 制作多文件上传表格
+        var uploadListIns = upload.render({
+            elem: '#btn-select-files',
+            elemList: $('#files-list'), // 列表元素对象
+            url: '/intel/fileSave',
+            accept: 'file',
+            multiple: true,
+            number: 3,
+            auto: false,
+            bindAction: '#btn-start-upload',
+            data: {
+                id: function () {
+                    return getFormVal('id');
+                },
+                type: function () {
+                    return getFormVal('type');
+                },
+                source: function () {
+                    return getFormVal('source');
+                },
+                category: function () {
+                    return getFormVal('category');
+                },
+            },
+            before: function (obj) {
+                let _source = getFormVal('source');
+                let _category = getFormVal('category');
+                if (!_source) {
+                    tipError('请选择来源');
+                    return false;
+                }
+                if (!_category) {
+                    tipError('请选择类型');
+                    return false;
+                }
+            },
+            choose: function (obj) {
+                var that = this;
+                var files = this.files = obj.pushFile(); // 将每次选择的文件追加到文件队列
+                // 读取本地文件
+                obj.preview(function (index, file, result) {
+                    var tr = $(['<tr id="upload-' + index + '">',
+                        '<td>' + file.name + '</td>',
+                        '<td>' + (file.size / 1024).toFixed(1) + 'kb</td>',
+                        '<td><div class="layui-progress" lay-filter="progress-file-' + index + '"><div class="layui-progress-bar" lay-percent=""></div></div></td>',
+                        '<td><div class="" lay-filter="info-file-' + index + '"></div></td>',
+                        '<td>',
+                        '<button class="layui-btn layui-btn-xs btn-reload layui-hide">重传</button>',
+                        '<button class="layui-btn layui-btn-xs layui-btn-danger btn-delete">删除</button>',
+                        '</td>',
+                        '</tr>'].join(''));
+
+                    // 单个重传
+                    tr.find('.btn-reload').on('click', function () {
+                        obj.upload(index, file);
+                    });
+
+                    // 删除
+                    tr.find('.btn-delete').on('click', function () {
+                        delete files[index]; // 删除对应的文件
+                        tr.remove(); // 删除表格行
+                        // 清空 input file 值，以免删除后出现同名文件不可选
+                        uploadListIns.config.elem.next()[0].value = '';
+                    });
+
+                    that.elemList.append(tr);
+                    element.render('progress'); // 渲染新加的进度条组件
+                });
+            },
+            done: function (res, index, upload) { // 成功的回调
+                var that = this;
+                var tr = that.elemList.find('tr#upload-' + index)
+                var tds = tr.children();
+                if (res.code == 0) { // 上传成功
+                    tds.eq(4).html(''); // 清空操作
+                    tds.eq(3).html('上传成功');
+                    delete this.files[index]; // 删除文件队列已经上传成功的文件
+                    return;
+                } else {
+                    tds.eq(3).html(res.msg);
+                    this.error(index, upload);
+                }
+            },
+            allDone: function (obj) { // 多文件上传完毕后的状态回调
+                if (obj.total == obj.successful && obj.successful) {
+                    tipSuccess('上传成功');
+                    return;
+                }
+                if (obj.failed) {
+                    tipError('有' + obj.failed + '个文件上传失败');
+                }
+            },
+            error: function (index, upload, res, xhr) { // 错误回调
+                var that = this;
+                var tr = that.elemList.find('tr#upload-' + index);
+                var tds = tr.children();
+                // 显示重传
+                tds.eq(4).find('.btn-reload').removeClass('layui-hide');
+                tds.eq(3).html(xhr.statusText);
+            },
+            progress: function (n, elem, e, index) {
+                element.progress('progress-file-' + index, n + '%');
+            }
+        });
+    });
+</script>

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/dist/css/all.min.css?{$v}">
+    <link rel="stylesheet" href="/layui/css/layui.css?{$v}">
+    <link rel="stylesheet" href="/dist/css/layout.min.css?{$v}">
+    <link rel="stylesheet" href="/dist/css/jquery.json-viewer.css?{$v}">
+    <link rel="stylesheet" href="/dist/css/sweetalert2.min.css?{$v}"/>
+    <!-- 优先于common.js加载，否则tipMsg方法中Swal未定义 -->
+    <script src="/dist/js/sweetalert2.all.min.js?{$v}" type="text/javascript" charset="utf-8"></script>
+    <style>
+        .layui-container {
+            margin-top: 15px;
+        }
+
+        input[readonly] {
+            cursor: not-allowed;
+        }
+
+        .layui-input-affix {
+            cursor: pointer;
+        }
+
+        .layui-icon-none {
+            color: rgba(0, 0, 0, .8);
+            pointer-events: auto !important;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-container">
+    <fieldset class="layui-elem-field">
+        <legend>文件情报详情</legend>
+        <div class="layui-field-box">
+            <form class="layui-form layui-form-pane" lay-filter="url-detail" action="" id="detail-form">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">序号</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="id" readonly lay-affix="none fa-light fa-lg fa-copy" lay-filter="copy" lay-options="{split: true}" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">路径</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="path" readonly lay-affix="none fa-light fa-lg fa-copy" lay-filter="copy" lay-options="{split: true}" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">名称</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="name" readonly lay-affix="none fa-light fa-lg fa-copy" lay-filter="copy" lay-options="{split: true}" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">Hash</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="hash" readonly lay-affix="none fa-light fa-lg fa-copy" lay-filter="copy" lay-options="{split: true}" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">来源</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="source_str" readonly lay-affix="none fa-light fa-lg fa-copy" lay-filter="copy" lay-options="{split: true}" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">类型</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="category_str" readonly lay-affix="none fa-light fa-lg fa-copy" lay-filter="copy" lay-options="{split: true}" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">邮件时间</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="created_at" readonly lay-affix="none fa-light fa-lg fa-copy" lay-filter="copy" lay-options="{split: true}" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">评论</label>
+                    <div class="layui-input-block">
+                        <textarea rows="9" name="desc" class="layui-textarea">{$desc|raw}</textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </fieldset>
+</div>
+</body>
+
+<script src="/layui/layui.js?{$v}" type="text/javascript" charset="utf-8"></script>
+<script src="/dist/js/jquery.min.js?{$v}" type="text/javascript" charset="utf-8"></script>
+<script src="/dist/js/common.js?{$v}" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+    $('body').on('keydown', function (event) {
+        if (event.keyCode == 27) {
+            if (parent.layer) {
+                parent.layer.closeAll();
+            }
+        }
+    });
+    layui.use(['form'], function () {
+        layui.form.val('url-detail', {
+            "id": "{$record['id']}",
+            "path": "{$record['path'] ?? ''}",
+            "category_str": "{$record['category_str'] ?? ''}",
+            "created_at": "{$record['created_at'] ?? ''}",
+            "name": "{$record['name'] ?? ''}",
+            "hash": "{$record['hash'] ?? ''}",
+            "source_str": "{$record['source_str'] ?? ''}",
+        });
+        $('.layui-icon-none').removeClass('layui-icon');
+        layui.form.on('input-affix(copy)', function (data) {
+            copyToClipboard(data.elem.value);
+            tipInfo('复制成功', {timer: 400});
+        });
+    });
+</script>

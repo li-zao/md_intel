@@ -1,0 +1,82 @@
+.layui-nav.layui-nav-tree {
+    width: 170px;
+}
+
+.layui-side-scroll {
+    width: 170px;
+}
+
+.layui-layout-admin .layui-side {
+    width: 170px;
+}
+
+.layui-body {
+    left: 170px;
+}
+
+.nav-footer p {
+    text-align: center;
+    font-size: 12px;
+    color: #808080;
+}
+
+.nav-footer {
+    position: fixed;
+    bottom: 0;
+    width: 170px;
+}
+
+.layui-layout-admin .layui-footer {
+    left: 170px;
+    display: none;
+}
+
+div:where(.swal2-container) {
+    user-select: none;
+    z-index: 19991018 !important;
+}
+
+.colored-toast.swal2-icon-success {
+    background-color: #84d263 !important;
+}
+
+.colored-toast.swal2-icon-error {
+    background-color: #f55f5f !important;
+}
+
+.colored-toast.swal2-icon-warning {
+    background-color: #f8bb86 !important;
+}
+
+.colored-toast.swal2-icon-info {
+    background-color: #3fc3ee !important;
+}
+
+.colored-toast.swal2-icon-question {
+    background-color: #87adbd !important;
+}
+
+.colored-toast .swal2-title {
+    color: white;
+}
+
+.colored-toast .swal2-close {
+    color: white;
+}
+
+.colored-toast .swal2-html-container {
+    color: white;
+}
+
+.layui-nav-itemed > a {
+    color: #16baaa !important;
+}
+
+a[class^='layui-layer-btn'], .layui-layer-btn .layui-layer-btn0 {
+    border: 1px solid transparent;
+    background-color: #16baaa !important;
+    color: #fff !important;
+}
+a[class^='layui-layer-btn']:has(> i.fa-trash-can) {
+    background-color: #ff5722 !important;
+}

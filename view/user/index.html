@@ -1,0 +1,182 @@
+{extend  name="layout" /}
+{block name="breadcrumb"}
+<a><cite>{$breadcrumb}</cite></a>
+{/block}
+
+{block name="content"}
+<div class="layui-row layui-padding-3">
+    <div class="layui-col-md12">
+        <div id="user-div" lay-filter="data_table"></div>
+    </div>
+</div>
+<script type="text/html" id="user-table-tool">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="addUser"><i class="fa-regular fa-square-plus"></i> 新增</button>
+    </div>
+</script>
+<script type="text/html" id="user-tools">
+    <div class="layui-btn-container">
+        <div class="layui-btn-group">
+            <a class="layui-btn layui-btn-primary layui-border-blue layui-btn-sm" lay-event="detail"><i class="fa-regular fa-pen-to-square"></i> 编辑</a>
+            <a class="layui-btn layui-btn-primary layui-border-red layui-btn-sm" lay-event="delUser"><i class="fa-regular fa-trash-can"></i> 删除</a>
+        </div>
+    </div>
+</script>
+<script type="text/html" id="user-status-switch">
+    <input type="checkbox" name="status" value="{{= d.id }}" title="启用|禁用" lay-skin="switch"
+           lay-filter="user-status-filter" {{=d.status == 1 ? "checked" : "" }}>
+</script>
+<script>
+    var form = layui.form;
+    var table = layui.table;
+    var layer = layui.layer;
+    let tableFlag = 'scan_user';
+    let colsHideDict = loadTableCols(tableFlag);
+    let colsWidthDict = loadTableCols(tableFlag, 'width');
+    var instance = table.render({
+        elem: '#user-div',
+        url: '/user/list',
+        page: true,
+        cols: [[
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {
+                field: 'name',
+                title: '用户名',
+                width: colsWidthDict.get('name') || 120,
+                hide: colsHideDict.get('name')
+            },
+            {
+                field: 'role_str',
+                title: '角色',
+                width: colsWidthDict.get('role_str') || 120,
+                hide: colsHideDict.get('role_str')
+            },
+            {
+                field: 'status',
+                title: '状态',
+                width: colsWidthDict.get('status') || 120,
+                hide: colsHideDict.get('status'),
+                templet: '#user-status-switch'
+            },
+            {
+                field: 'created_at',
+                title: '创建时间',
+                width: colsWidthDict.get('created_at') || 120,
+                hide: colsHideDict.get('created_at')
+            },
+            {
+                field: 'ops',
+                fixed: "right",
+                title: "操作",
+                width: colsWidthDict.get('ops') || 180,
+                align: "center",
+                toolbar: "#user-tools"
+            }
+        ]],
+        toolbar: '#user-table-tool',
+        defaultToolbar: ['filter', 'exports', 'print'],
+        title: '用户列表',
+    });
+    table.on('colToggled(data_table)', function (obj) {
+        saveTableCols(obj, tableFlag);
+    });
+    table.on('colResized(data_table)', function (obj) {
+        saveTableColWidth(obj, tableFlag);
+    });
+    // 表头工具栏
+    table.on('toolbar(data_table)', function (obj) {
+        switch (obj.event) {
+            case 'addUser':
+                editUser(0);
+                break;
+        }
+    });
+    table.on('tool(data_table)', function (obj) {
+        switch (obj.event) {
+            case 'detail':
+                editUser(obj.data.id);
+                break;
+            case 'delUser':
+                delUser(obj.data);
+                break;
+        }
+    });
+    form.on('switch(user-status-filter)', function (obj) {
+        let id = this.value;
+        let status = obj.elem.checked;
+        var swt = $(obj.elem);
+        $.ajax({
+            type: "POST",
+            url: "/user/status",
+            data: {id: id, status: status},
+            success: function (result) {
+                if (result.code) {
+                    tipError(result.msg)
+                    swt.prop("checked", !status);
+                    layui.form.render();
+                    return false;
+                }
+                table.reloadData(instance.config.id);
+            }
+        });
+    });
+
+    function delUser(data) {
+        delConfirm(data.name).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "POST",
+                    url: "/user/del",
+                    data: {id: data.id},
+                    success: function (result) {
+                        if (result.code) {
+                            tipError(result.msg)
+                            return false;
+                        }
+                        table.reloadData(instance.config.id);
+                    }
+                });
+            }
+        });
+    }
+
+    function editUser(id) {
+        let title = "编辑用户";
+        if (id == 0) {
+            title = '新增用户';
+        }
+        layer.open({
+            type: 2,
+            title: title,
+            area: ['600px', '500px'],
+            content: "/user/edit?id=" + id,
+            btn: ['保存', '取消'],
+            yes: function (index, layero) {
+                var submitID = 'user-edit-form',
+                    form = layero.find('iframe').contents().find('#' + submitID);
+                $.ajax({
+                    type: "POST",
+                    data: form.serialize(),
+                    url: "/user/edit",
+                    success: function (result) {
+                        if (result.code) {
+                            tipError(result.msg)
+                            return false;
+                        }
+                        layer.close(index);
+                        table.reloadData(instance.config.id);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR, textStatus, errorThrown);
+                        tipError('请求错误，请联系管理员');
+                        return false;
+                    },
+                    complete: function () {
+                        return false;
+                    }
+                });
+            }
+        });
+    }
+</script>
+{/block}

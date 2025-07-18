@@ -1,0 +1,42 @@
+{__NOLAYOUT__}
+{include file="public/dialog" /}
+<div class="layui-row">
+    <div class="layui-col-md12 layui-margin-2">
+        <form class="layui-form form-container" lay-filter="user-edit-form" id="user-edit-form">
+            <div class="layui-form-item">
+                <label class="layui-form-label">用户名</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" placeholder="用户名" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">密码</label>
+                <div class="layui-input-block">
+                    <input type="password" name="password" placeholder="{$passHolder}" autocomplete="off"
+                           class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">角色</label>
+                <div class="layui-input-block">
+                    <select name="role" lay-filter="role">
+                        {foreach $roles as $key => $role}
+                        <option value="{$key}" {eq name="key" value="$record.role"} selected {/eq}>{$role}</option>
+                        {/foreach}
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="id">
+        </form>
+    </div>
+</div>
+
+<script>
+    layui.use(['form'], function () {
+        var form = layui.form;
+        form.val('user-edit-form', {
+            "id": "{$record['id']}",
+            "name": "{$record['name'] ?? ''}",
+        });
+    });
+</script>

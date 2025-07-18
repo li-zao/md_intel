@@ -1,0 +1,38 @@
+{__NOLAYOUT__}
+{include file="public/dialog" /}
+    <div class="layiu-row">
+        <div class="layui-col-md12 layui-padding-2">
+            <form id="pkForm" lay-filter="pkForm" class="layui-form layui-form-pane" action="">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">类型</label>
+                    <div class="layui-input-block">
+                        <input type="text" id="type" name="type" autocomplete="off" placeholder="例：database"
+                               class="layui-input" lay-verify="required">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">类型描述</label>
+                    <div class="layui-input-block">
+                        <input type="text" id="name" name="name" autocomplete="off" placeholder="例：数据库"
+                               class="layui-input" lay-verify="required">
+                    </div>
+                </div>
+                <input type="hidden" name="id">
+            </form>
+        </div>
+    </div>
+<script>
+var form = layui.form;
+// form数据初始化
+{if !empty($info)}
+    form.val("pkForm", {
+        id: '{$info["id"] ?? 0}',
+        type: '{$info["type"] ?? ""}',
+        name: '{$info["name"] ?? ""}',
+    })
+{/if}
+$(function(){
+    // 渲染form
+    form.render();
+})
+</script>

@@ -1,0 +1,39 @@
+{__NOLAYOUT__}
+{include file="public/dialog" /}
+<style>
+</style>
+<div class="layui-row">
+    <div class="layui-col-md12 layui-padding-2">
+        <form class="layui-form form-container" lay-filter="item-edit-form" id="item-edit-form">
+            <div class="layui-form-item">
+                <div class="layui-block">
+                    <label class="layui-form-label">正常文件</label>
+                    <div class="layui-input-block">
+                        <select name="positive" lay-filter="positive">
+                            <option value=""></option>
+                            {foreach $files as $item}
+                            <option value="{$item['path']}">{$item['lines']} - {$item['name']}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">恶意文件</label>
+                <div class="layui-input-block">
+                    <select name="negative" lay-filter="negative">
+                        <option value=""></option>
+                        {foreach $files as $item}
+                        <option value="{$item['path']}">{$item['lines']} - {$item['name']}</option>
+                        {/foreach}
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="type" value="{$type}">
+            <input type="hidden" name="set" value="{$set}">
+        </form>
+    </div>
+</div>
+
+<script>
+</script>

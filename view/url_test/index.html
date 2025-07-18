@@ -1,0 +1,276 @@
+{extend  name="layout" /}
+
+{block name="breadcrumb"}
+<a><cite>{$breadcrumb}</cite></a>
+{/block}
+
+{block name="content"}
+
+<div class="layui-row layui-margin-2">
+    <div class="layui-col-md12">
+        <table class="layui-hide data_table" lay-filter="data_table"></table>
+    </div>
+</div>
+
+<!-- 行工具栏 -->
+<script type="text/html" id="bar">
+    <div class="layui-btn-group">
+        <a class="layui-btn layui-btn-sm" lay-event="statistic"><i class="fa-light fa-lg fa-circle-info"></i> 统计</a>
+        <!-- <a class="layui-btn layui-btn-sm" lay-event="desc"><i class="fa-light fa-lg fa-comment-dots"></i> 评论</a> -->
+        <!-- <a class="layui-btn layui-btn-sm" lay-event="move"><i class="fa-light fa-lg fa-arrow-right-arrow-left"></i> 移动</a> -->
+        <!-- <a class="layui-btn layui-btn-danger layui-btn-sm" lay-event="del"><i class="fa-light fa-lg fa-trash-can"></i> -->
+        <!--     删除</a> -->
+    </div>
+</script>
+
+<!-- 头部工具栏 -->
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container layui-hide">
+        <button class="layui-btn layui-btn-sm" lay-event="addItem">
+            <i class="fa-light fa-lg fa-plus-circle"></i> 添加
+        </button>
+        <button class="layui-btn layui-btn-danger layui-btn-sm" lay-event="bulkDelete">
+            <i class="fa-light fa-lg fa-trash-can"></i> 删除
+        </button>
+        <button class="layui-btn layui-bg-blue layui-btn-sm" lay-event="bulkMove">
+            <i class="fa-light fa-lg fa-arrow-right-arrow-left"></i> 移动集合
+        </button>
+        <button class="layui-btn layui-bg-blue layui-btn-sm" lay-event="genVector">
+            <i class="fa-light fa-lg fa-vector-square"></i> 生成向量
+        </button>
+        <button class="layui-btn layui-bg-blue layui-btn-sm" lay-event="urlTrain">
+            <i class="fa-light fa-lg fa-wand-magic-sparkles"></i> 训练
+        </button>
+        <button class="layui-btn layui-bg-blue layui-btn-sm" lay-event="urlTest">
+            <i class="fa-light fa-lg fa-wand-magic-sparkles"></i> 验证
+        </button>
+        <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-event="export">
+            <i class="fa-light fa-lg fa-circle-down"></i> 导出
+        </button>
+        <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" id="btn-import-url">
+            <i class="fa-light fa-lg fa-circle-up"></i> 导入
+        </button>
+    </div>
+</script>
+<script type="text/html" id="url-predict-templet">
+    <span class="predict_{{= d.predict }}">{{= d.predict_str }}</span>
+</script>
+{/block}
+
+{block name="js"}
+<script>
+    var laydate = layui.laydate;
+    var element = layui.element;
+    var upload = layui.upload;
+    var table = layui.table;
+    var form = layui.form;
+    var dialogIndex;
+    var tableFlag = 'md_intel_url_test';
+    let colsHideDict = loadTableCols(tableFlag);
+    let colsWidthDict = loadTableCols(tableFlag, 'width');
+    // table 展示
+    var instance = table.render({
+        elem: '.data_table',
+        height: 'full',
+        toolbar: '#toolbar',
+        url: '/urlTest/List/',
+        page: {groups: 10},
+        limits: [10, 20, 50, 100, 300, 1000],
+        where: {},
+        cols: [[ //表头
+            {type: 'checkbox'},
+            {field: 'id', width: (colsWidthDict.get('id') ?? '5%'), title: '序号', hide: colsHideDict.get('id')},
+            {field: 'name', width: (colsWidthDict.get('name') ?? '35%'), title: '名称', hide: colsHideDict.get('name')},
+            {
+                field: 'created_at',
+                width: (colsWidthDict.get('created_at') ?? '10%'),
+                title: '上传时间',
+                hide: colsHideDict.get('created_at')
+            },
+            {
+                field: 'total',
+                width: (colsWidthDict.get('total') ?? '5%'),
+                title: '总数',
+                hide: colsHideDict.get('total')
+            },
+            {
+                field: 'statistic',
+                width: (colsWidthDict.get('statistic') ?? '15%'),
+                title: '统计',
+                hide: colsHideDict.get('statistic')
+            },
+            {fixed: 'right', title: '操作', toolbar: '#bar', width: '326'}
+        ]]
+    });
+    // 行工具栏事件
+    table.on('tool(data_table)', function (obj) {
+        var data = obj.data;
+        var layer = layui.layer;
+        var layedit = layui.layedit;
+        if (data.id != undefined) {
+            var id = data.id;
+            if (obj.event === 'statistic') {
+                $.ajax({
+                    type: "POST",
+                    url: "/urlTest/statistic",
+                    data: {id: id},
+                    success: function (result) {
+                        if (result.code) {
+                            tipError('失败，原因：' + result);
+                            return false;
+                        }
+                        obj.del();
+                        table.reloadData(instance.config.id);
+                        tipSuccess('成功');
+                    }
+                });
+            } else if (obj.event === 'del') {
+                // delConfirm(data.url).then((result) => {
+                //     if (result.isConfirmed) {
+                //         $.ajax({
+                //             type: "POST",
+                //             url: "/intel/urlDel",
+                //             data: {id: id},
+                //             success: function (result) {
+                //                 if (result.code) {
+                //                     tipError('删除失败，原因：' + result);
+                //                     return false;
+                //                 }
+                //                 obj.del();
+                //                 table.reloadData(instance.config.id);
+                //                 tipSuccess('删除成功');
+                //             }
+                //         });
+                //     }
+                // });
+            }
+        }
+    });
+
+    table.on('rowDouble(data_table)', function (obj) {
+        openDetail(obj.data.id, obj)
+    });
+    // 头工具栏事件
+    table.on('toolbar(data_table)', function (obj) {
+        var checkStatus = table.checkStatus(obj.config.id);
+        var data = checkStatus.data;
+        if (data.length === 0) {
+            if (obj.event === 'bulkDelete' || obj.event === 'bulkMove') {
+                tipError('请选择要操作的数据')
+                return false;
+            }
+        }
+        var ids = [];
+        $.each(data, function (a, b) {
+            ids.push(b.id)
+        });
+
+        var idsString = ids.toString()
+        switch (obj.event) {
+            case 'export':
+                let searchForm = $('#searchForm').serializeArray();
+                let emptySearch = true;
+                for (let i = 0; i < searchForm.length; i++) {
+                    if (searchForm[i].name === 'type' || searchForm[i].name === 'set') {
+                        continue;
+                    }
+                    if (searchForm[i].value !== '') {
+                        emptySearch = false;
+                        break;
+                    }
+                }
+                if (data.length === 0 && emptySearch) {
+                    opConfirm('确定导出全部数据？', '当前没有搜索条件并且未勾选任何数据').then((res) => {
+                        if (res.isConfirmed) {
+                            exportData();
+                            return false;
+                        }
+                    });
+                } else {
+                    exportData(ids);
+                }
+                break;
+            case 'bulkDelete':
+                delConfirm(data.length + '条数据').then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type: "POST",
+                            url: "/intel/urlDel",
+                            data: {ids: idsString},
+                            success: function (result) {
+                                if (result.code) {
+                                    tipError('删除失败 ' + result.msg);
+                                    return false;
+                                }
+                                table.reloadData(instance.config.id);
+                                tipSuccess('删除成功');
+                            }
+                        });
+                    }
+                });
+                break;
+        }
+    });
+    table.on('colToggled(data_table)', function (obj) {
+        saveTableCols(obj, tableFlag);
+    });
+    table.on('colResized(data_table)', function (obj) {
+        saveTableColWidth(obj, tableFlag);
+    });
+    function openDetail(id, obj = {}, option = {}) {
+        dialogIndex = layer.open({
+            title: false,
+            type: 2,
+            tipsMore: true,
+            anim: option.anim || false,
+            isOutAnim: option.isOutAnim || false,
+            area: ['90%', '90%'],
+            btn: [
+                // '<i class="fa-light fa-floppy-disk"></i> 保存',
+                // '<i class="fa-light fa-refresh"></i> 生成向量',
+                // '<i class="fa-light fa-backward"></i> 上一条',
+                // '下一条 <i class="fa-light fa-forward"></i>',
+                // '<i class="fa-light fa-trash-can"></i> 删除',
+                '<i class="fa-light fa-times"></i> 关闭',
+            ],
+            // btn1: function (index, layero) {
+            //     let inputForm = $("#layui-layer-iframe" + dialogIndex).contents().find("#detail-form");
+            //     $.ajax({
+            //         type: "POST",
+            //         data: objectifyForm(inputForm.serializeArray()),
+            //         url: "/urlTest/desc",
+            //         success: function (result) {
+            //             if (result.code) {
+            //                 tipError('失败' + result.msg);
+            //                 return false;
+            //             }
+            //             tipSuccess('成功');
+            //         }
+            //     });
+            // },
+            content: '/dialog/urlTestRows/t_id/' + id
+        });
+    }
+    function exportData(ids = []) {
+        if (!ids.length) {
+            window.open('/urlTest/export?' + array2UrlParams(objectifyForm($('#searchForm').serializeArray())));
+        } else {
+            window.open('/urlTest/export?ids=' + ids.join(','));
+        }
+    }
+    $(function () {
+        $('#searchBtn').click(function () {
+            table.reloadData(instance.config.id, {
+                url: '/urlTest/list',
+                where: objectifyForm($('#searchForm').serializeArray()),
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            })
+        });
+        $('#resetBtn').click(function () {
+            window.location.href = "/urlTest/index";
+        });
+    })
+</script>
+{/block}
