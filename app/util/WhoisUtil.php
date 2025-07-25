@@ -766,7 +766,7 @@ class WhoisUtil
         'lego'               => 'whois.nic.lego',
         'lexus'              => 'whois.nic.lexus',
         'lgbt'               => 'whois.nic.lgbt',
-        'li'                 => 'whois.nic.li',
+        'li'                 => 'https://www.nic.ch/whois/',
         'lidl'               => 'whois.nic.lidl',
         'life'               => 'whois.nic.life',
         'lifestyle'          => 'whois.nic.lifestyle',

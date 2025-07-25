@@ -9,6 +9,7 @@ use app\common\Code;
 use app\model\CommonUtil;
 use app\model\UrlScreen;
 use Exception;
+use think\facade\Console;
 use think\facade\Filesystem;
 use think\Response;
 
@@ -55,6 +56,9 @@ class File extends BaseController
             return self::jsonAPI($res);
         } catch (Exception $e) {
             CommonUtil::logError($e);
+            if (stripos($e->getMessage(), 'failed to open stream: Permission denied') !== false) {
+                Console::call('chown');
+            }
             return self::jsonAPI([], Code::API_NO, $e->getMessage());
         }
     }

@@ -191,15 +191,14 @@
                                     </div>
                                 </div>
                                 <div class="layui-form-item">
-                                    <a class="layui-btn layui-btn-sm op-btn">Normal</a>
-                                    <a class="layui-btn layui-btn-sm op-btn">502</a>
-                                    <a class="layui-btn layui-btn-sm op-btn">404</a>
-                                    <a class="layui-btn layui-btn-sm op-btn">400</a>
-                                    <a class="layui-btn layui-btn-sm op-btn">Host</a>
+                                    <a class="layui-btn layui-btn-sm op-btn">正常</a>
+                                    <a class="layui-btn layui-btn-sm op-btn">502|404|400</a>
+                                    <a class="layui-btn layui-btn-sm op-btn">钓鱼</a>
                                     <a class="layui-btn layui-btn-sm op-btn">白页</a>
                                     <a class="layui-btn layui-btn-sm op-btn">JS 跳转</a>
                                     <a class="layui-btn layui-btn-sm op-btn">不可用短链</a>
                                     <a class="layui-btn layui-btn-sm op-btn">恶意域名</a>
+                                    <a class="layui-btn layui-btn-sm op-btn">拉黑此域名</a>
                                 </div>
                                 <div class="layui-form-item layui-form-text">
                                     <label class="layui-form-label">评论 <span id="desc-tip">{$descTime}</span></label>
@@ -220,12 +219,32 @@
                 <div class="layui-col-md6">
                     <div class="layui-row">
                         <div class="layui-col-md12">
-                            <pre class="layui-code url-html-text" lay-options="{}">{$urlHtml}</pre>
+                            <fieldset class="layui-elem-field">
+                                <legend>HTTP Header</legend>
+                                <div class="layui-field-box">
+                                    <pre class="layui-code url-html-text" lay-options="{}">{$urlResponse}</pre>
+                                </div>
+                            </fieldset>
                         </div>
                     </div>
                     <div class="layui-row">
                         <div class="layui-col-md12">
-                            <pre class="layui-code url-html-text" lay-options="{}">{$urlResponse}</pre>
+                            <fieldset class="layui-elem-field">
+                                <legend>Whois</legend>
+                                <div class="layui-field-box">
+                                    <pre class="layui-code url-html-text" lay-options="{}">{$record['whois']}</pre>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                    <div class="layui-row">
+                        <div class="layui-col-md12">
+                        <fieldset class="layui-elem-field">
+                            <legend>HTTP Response Body</legend>
+                            <div class="layui-field-box">
+                                <pre class="layui-code url-html-text" lay-options="{}">{$urlHtml}</pre>
+                            </div>
+                        </fieldset>
                         </div>
                     </div>
                 </div>

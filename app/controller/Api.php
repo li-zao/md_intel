@@ -24,12 +24,14 @@ class Api extends BaseController
     public function pushUrl()
     {
         try {
-            $url    = $this->request->param('url');
-            $type   = $this->request->param('type');
-            $url    = CommonUtil::formatUrl($url);
-            $hash   = CommonUtil::getUrlHash($url);
-            $record = Url::where('hash', $hash)->findOrEmpty();
-            $save   = [];
+            $url      = $this->request->param('url');
+            $type     = $this->request->param('type');
+            $scanId   = $this->request->param('sys_scan_id', 0);
+            $mailInfo = $this->request->param('sys_mail_record', '');
+            $url      = CommonUtil::formatUrl($url);
+            $hash     = CommonUtil::getUrlHash($url);
+            $record   = Url::where('hash', $hash)->findOrEmpty();
+            $save     = [];
             if (!$record->isEmpty()) {
                 $save = $record->toArray();
             }
@@ -59,14 +61,16 @@ class Api extends BaseController
                     }
                 }
             }
-            $save['url']      = $url;
-            $save['hash']     = $hash;
-            $save['source']   = $source;
-            $save['category'] = $category;
-            $save['type']     = $type;
-            $save['set']      = $set;
-            $save['is_del']   = Code::IS_NO;
-            $save             = Url::formatSave($save);
+            $save['url']             = $url;
+            $save['hash']            = $hash;
+            $save['source']          = $source;
+            $save['category']        = $category;
+            $save['type']            = $type;
+            $save['set']             = $set;
+            $save['sys_scan_id']     = $scanId;
+            $save['sys_mail_record'] = $mailInfo;
+            $save['is_del']          = Code::IS_NO;
+            $save                    = Url::formatSave($save);
             foreach ($save as $key => $value) {
                 $record->$key = $value;
             }

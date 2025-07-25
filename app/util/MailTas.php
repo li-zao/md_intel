@@ -128,9 +128,10 @@ class MailTas
 
     /**
      * @param $url
-     * @return int
+     * @param $data
+     * @return bool|int|mixed|string
      */
-    public function urlScan($url = '')
+    public function urlScan($url = '', $data = null)
     {
         try {
             $this->errInfo = '';
@@ -140,6 +141,7 @@ class MailTas
             }
             $params = [
                 'url' => $url,
+                'data' => $data
             ];
             $res    = $this->query(self::API_URL_SCAN, $params, 'POST');
             if ($res === false) {

@@ -44,9 +44,6 @@ class UrlTestStatistic
         try {
             $id            = $data['id'] ?? 0;
             $urlTestRecord = \app\model\UrlTest::findOrEmpty($id);
-            if (!empty($urlTestRecord->statistic)) {
-                return false;
-            }
             $where['t_id'] = $id;
             $urlQuery      = \app\model\UrlTestRows::field('max(id) as end, min(id) as start')->where($where)->select();
             $urlQuery      = $urlQuery->toArray();

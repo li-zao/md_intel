@@ -228,7 +228,8 @@ class UrlVector extends Model
             return [$httpCache['url_http'], $httpCache['url_whois'], $httpCache['url_tls']];
         }
         $httpInfo = $vectorModel->getHttpContent($url);
-        list($whoisInfo, $tls) = $vectorModel->getWhoisContent($url);
+        $realUrl = $httpInfo['http']['real_url'] ?? $url;
+        list($whoisInfo, $tls) = $vectorModel->getWhoisContent($realUrl);
         if (json_encode($httpInfo, JSON_INVALID_UTF8_IGNORE) === false) {
             unset($httpInfo['body']);
         }
@@ -342,7 +343,7 @@ class UrlVector extends Model
             $data['http']['ip_loc'] = CommonUtil::getIpInfo($data['header']['primary_ip']);
         }
         if (!empty($data['body'])) {
-            $data['body'] = ForceUTF8Encode::fixUTF8($data['body']);
+            // $data['body'] = ForceUTF8Encode::fixUTF8($data['body']);
         }
         if (!empty($requestOps[CURLOPT_PROXY]) && $data['code'] != 200) {
             return $this->getHttpContent($rawUrl, ['proxy' => false]);

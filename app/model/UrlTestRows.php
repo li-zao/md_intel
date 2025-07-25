@@ -185,6 +185,10 @@ class UrlTestRows extends Model
             $data[$field]          = Dictionary::formatSelected(CommonUtil::explodeStr($data[$field] ?? ''), $dict);
             $data[$field . '_str'] = implode(',', array_column($data[$field], 'name'));
         }
+        if (empty($data['url'])) {
+            $_res = Url::field('url')->where('id', $data['url_id'])->find();
+            $data = array_merge($data, $_res->toArray());
+        }
         return $data;
     }
 

@@ -9,5 +9,6 @@ return [
         'queue'   => 'app\command\QueueCommand',
         'init_db' => 'app\command\DbInit',
         'fix'     => 'app\command\Fix',
+        'chown'   => 'app\command\Chown',
     ],
 ];

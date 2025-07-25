@@ -70,7 +70,7 @@ class UrlTest
                 foreach ($records as $record) {
                     $totalInsert++;
                     $testRow     = new UrlTestRows();
-                    $res         = $util->urlScan($record['url']);
+                    $res         = $util->urlScan($record['url'], $record['sys_mail_record']);
                     $_insertData = [
                         'url_id'   => $record['id'],
                         't_id'     => $id,
