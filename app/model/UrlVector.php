@@ -257,7 +257,6 @@ class UrlVector extends Model
      */
     public function getHttpContent($rawUrl, $options = [])
     {
-        $util     = new MdApi();
         $escCode  = [0, 2, 4, 5];
         $counter  = 0;
         $redirect = [];
@@ -284,6 +283,15 @@ class UrlVector extends Model
             unset($headerOptions[CURLOPT_PROXY]);
             unset($requestOps[CURLOPT_PROXY]);
         }
+        if (!isset($options['header'])) {
+            $headerOptions[CURLOPT_HEADER] = $options['header'] = [
+                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                // 'Accept-Encoding: gzip, deflate',
+                'Accept-Language: en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
+                'Cache-Control: no-cache',
+                'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
+            ];
+        }
         while (true) {
             if (stripos($rawUrl, 'https://') === 0) {
                 $headerOptions[CURLOPT_SSL_VERIFYPEER] = false;
@@ -297,7 +305,7 @@ class UrlVector extends Model
             } else {
                 $requestOps[CURLOPT_NOBODY] = true;
             }
-            $data = CommonUtil::httpRequest($url, [], 'GET', [], $requestOps);
+            $data = CommonUtil::httpRequest($url, [], 'GET', $options['header'] ?? [], $requestOps);
             // $data = $util->httpRequest($url, [], 'GET', [], $options);
             foreach ($header as $key => $value) {
                 if (!isset($data['header'][$key])) {
@@ -346,7 +354,7 @@ class UrlVector extends Model
             // $data['body'] = ForceUTF8Encode::fixUTF8($data['body']);
         }
         if (!empty($requestOps[CURLOPT_PROXY]) && $data['code'] != 200) {
-            return $this->getHttpContent($rawUrl, ['proxy' => false]);
+            return $this->getHttpContent($rawUrl, array_merge($options, ['proxy' => false]));
         }
         return $data;
     }

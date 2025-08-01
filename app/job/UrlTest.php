@@ -68,6 +68,7 @@ class UrlTest
                 $records = Url::field('id,url')->where($where)->where('id', '>=', $i)->where('id', '<', $i + $limit)->select();
                 $records = $records->toArray();
                 foreach ($records as $record) {
+                    $record['sys_mail_record'] = json_decode($record['sys_mail_record'], true);
                     $totalInsert++;
                     $testRow     = new UrlTestRows();
                     $res         = $util->urlScan($record['url'], $record['sys_mail_record']);

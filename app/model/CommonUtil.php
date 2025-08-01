@@ -686,6 +686,8 @@ class CommonUtil
             foreach ($rawHeaders as $key => $value) {
                 if (strpos($value, ':') !== false) {
                     list($k, $v) = explode(':', $value, 2);
+                    $k = strtolower(str_replace('-', '_', $k));
+                    $v = trim($v);
                     $headers[$k] = $v;
                 } elseif (!empty($value)) {
                     $headers[] = $value;
@@ -697,8 +699,11 @@ class CommonUtil
         if (stripos($headers['content_type'], 'charset=') !== false) {
             list(, $charset) = explode('charset=', strtolower($headers['content_type']));
         }
+        if (isset($headers['content_encoding']) && stripos($headers['content_encoding'], 'gzip') !== false) {
+            $body = gzdecode($body);
+        }
         if (strpos($charset, 'utf') === false) {
-            @$body = iconv($charset, 'UTF-8//IGNORE', $body);
+            // @$body = iconv($charset, 'UTF-8//IGNORE', $body);
         }
         return [
             'code'   => curl_getinfo($ch, CURLINFO_HTTP_CODE),

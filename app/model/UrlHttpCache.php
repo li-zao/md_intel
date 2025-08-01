@@ -49,6 +49,7 @@ class UrlHttpCache extends Model
     public function updateCache($data, $id = 0)
     {
         if (!empty($id)) {
+            unset($data['id'], $data['url_hash']);
             return $this->update($data, ['id' => $id]);
         }
         return $this->insert($data);

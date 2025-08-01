@@ -68,7 +68,7 @@ class Api extends BaseController
             $save['type']            = $type;
             $save['set']             = $set;
             $save['sys_scan_id']     = $scanId;
-            $save['sys_mail_record'] = $mailInfo;
+            $save['sys_mail_record'] = is_array($mailInfo) ? json_encode($mailInfo) : $mailInfo;
             $save['is_del']          = Code::IS_NO;
             $save                    = Url::formatSave($save);
             foreach ($save as $key => $value) {
