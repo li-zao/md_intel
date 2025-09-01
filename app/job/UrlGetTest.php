@@ -40,12 +40,12 @@ class UrlGetTest
     {
         Db::startTrans();
         try {
-            $id = $data['id'] ?? 0;
+            $id = $data['tas_id'] ?? 0;
             if (empty($id)) {
                 return false;
             }
             $util       = new MailTas();
-            $urlTestRow = \app\model\UrlTestRows::where('tas_id', $id)->findOrEmpty();
+            $urlTestRow = \app\model\UrlTestRows::where($data)->findOrEmpty();
             $res        = $util->urlGetScan($id);
             $update = [
                 'res'      => json_encode($res),
@@ -57,6 +57,7 @@ class UrlGetTest
         } catch (Exception $e) {
             Db::rollback();
             Log::error($e->getMessage());
+            Log::error($e->getTraceAsString());
         }
         return true;
     }

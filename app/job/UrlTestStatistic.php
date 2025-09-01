@@ -17,6 +17,7 @@ use think\queue\Job;
 class UrlTestStatistic
 {
 
+
     public function __construct()
     {
     }
@@ -53,11 +54,17 @@ class UrlTestStatistic
             $statistic     = [
                 'ok'        => 0,
                 'intercept' => 0,
+                'invalid'   => 0,
             ];
             for ($i = $start; $i < $end; $i += $limit) {
-                $records = UrlTestRows::field('score')->where($where)->where('id', '>=', $i)->where('id', '<', $i + $limit)->select();
+                $records = UrlTestRows::field('score, res')->where($where)->where('id', '>=', $i)->where('id', '<', $i + $limit)->select();
                 $records = $records->toArray();
                 foreach ($records as $record) {
+                    $res = json_decode($record['res'], true);
+                    if (!empty($res['data']['category']) && $res['data']['category'] == UrlTestRows::CATEGORY_INVALID) {
+                        $statistic['invalid']++;
+                        continue;
+                    }
                     if (!empty($record['score']) && $record['score'] > 0) {
                         $statistic['intercept']++;
                     } else {
@@ -70,6 +77,7 @@ class UrlTestStatistic
         } catch (Exception $e) {
             Db::rollback();
             Log::error($e->getMessage());
+            Log::error($e->getTraceAsString());
         }
         return true;
     }

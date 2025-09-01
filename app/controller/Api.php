@@ -90,7 +90,7 @@ class Api extends BaseController
         try {
             $url    = $this->request->param('url');
             $hash   = CommonUtil::getUrlHash($url);
-            $record = UrlHttpCache::where('hash', $hash)->findOrEmpty();
+            $record = UrlHttpCache::where('url_hash', $hash)->findOrEmpty();
             if ($record->isEmpty()) {
                 return $this->jsonAPI([]);
             }
