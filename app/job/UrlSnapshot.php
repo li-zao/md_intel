@@ -87,6 +87,7 @@ class UrlSnapshot
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
+            Log::error($e->getTraceAsString());
         }
         return true;
     }

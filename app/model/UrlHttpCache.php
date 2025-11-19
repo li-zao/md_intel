@@ -95,9 +95,16 @@ class UrlHttpCache extends Model
                 }
             }
         }
-        $body = str_replace(['\n', '\t', '\"', '\/', '\r'], ["\n", "\t", '"', '/', "\r"], $body);
-        $body = htmlspecialchars_decode($body);
-        $body = html_entity_decode($body);
+        // $body = str_replace(['\n', '\t', '\"', '\/', '\r'], ["\n", "\t", '"', '/', "\r"], $body);
+        // $body = htmlspecialchars_decode($body);
+        // $body = html_entity_decode($body);
+        // $body = json_encode(json_decode($body, true), JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE);
+        $body = '{"body":' . $body . '"}';
+        $body = json_decode($body, true);
+        if (!empty($body)) {
+            $body = $body['body'];
+            $body = str_replace(['\n', '\t', '\"', '\/', '\r'], ["\n", "\t", '"', '/', "\r"], $body);
+        }
         return [$reformatJson, $body];
     }
 }

@@ -64,6 +64,9 @@ class UrlTest
             $totalInsert   = 0;
             $startId       = 0;
             $sleep         = 120;
+            if (!empty($startId) && $startId > $start) {
+                $start = $startId;
+            }
             for ($i = $start; $i < $end; $i += $limit) {
                 $records = Url::field('id, url, sys_mail_record')->where($where)->where('id', '>=', $i)->where('id', '<', $i + $limit)->select();
                 $records = $records->toArray();
